@@ -4,6 +4,8 @@
 let video;
 let handPose;
 let hands = [];
+let ball = { x: 320, y: 240, size: 100 }; // 球的初始位置與大小
+let isHoldingBall = false; // 是否正在拿著球
 
 // 定義手部骨架結構
 const skeleton = [
@@ -39,7 +41,12 @@ function setup() {
 function draw() {
   image(video, 0, 0);
 
-  // Ensure at least one hand is detected
+  // 畫出球
+  fill(255, 0, 0);
+  noStroke();
+  ellipse(ball.x, ball.y, ball.size);
+
+  // 確保至少檢測到一隻手
   if (hands.length > 0) {
     for (let hand of hands) {
       if (hand.confidence > 0.1) {
@@ -66,8 +73,24 @@ function draw() {
 
           noStroke();
           circle(keypoint.x, keypoint.y, 16);
+
+          // 檢查是否接觸到球
+          let d = dist(keypoint.x, keypoint.y, ball.x, ball.y);
+          if (d < ball.size / 2) {
+            isHoldingBall = true;
+          }
         }
       }
     }
+  }
+
+  // 如果正在拿著球，讓球跟隨手部移動
+  if (isHoldingBall && hands.length > 0) {
+    let hand = hands[0]; // 假設只檢測到一隻手
+    let palm = hand.keypoints[0]; // 手掌的關鍵點
+    ball.x = palm.x;
+    ball.y = palm.y;
+  } else {
+    isHoldingBall = false;
   }
 }
